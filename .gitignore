@@ -1,0 +1,20 @@
+# .NET build output
+**/bin/
+**/obj/
+
+# User-specific IDE files
+.vs/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/tasks.json
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+appsettings.Local.json
+secrets.json
+
+# Logs
+*.log
