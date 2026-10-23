@@ -1,12 +1,10 @@
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
@@ -14,28 +12,27 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-var summaries = new[]
+var events = new[]
 {
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
+    new
+    {
+        Id = 1,
+        Name = "Yazılım Geliştirici Buluşması",
+        Venue = "İstanbul",
+        StartsAt = new DateTimeOffset(2026, 11, 15, 19, 0, 0, TimeSpan.FromHours(3)),
+        AvailableTickets = 120
+    },
+    new
+    {
+        Id = 2,
+        Name = "Backend ve Veritabanı Zirvesi",
+        Venue = "Ankara",
+        StartsAt = new DateTimeOffset(2026, 12, 5, 14, 0, 0, TimeSpan.FromHours(3)),
+        AvailableTickets = 80
+    }
 };
 
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast");
+app.MapGet("/api/events", () => events)
+    .WithName("GetEvents");
 
 app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
