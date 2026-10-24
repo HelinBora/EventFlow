@@ -48,6 +48,21 @@ app.MapGet("/api/events", async (EventFlowDbContext db) =>
     await db.Events.ToListAsync())
     .WithName("GetEvents");
 
+app.MapGet("/api/events/{id:int}", async Task<IResult> (
+    int id,
+    EventFlowDbContext db) =>
+{
+    var eventItem = await db.Events.FindAsync(id);
+
+    if (eventItem is null)
+    {
+        return Results.NotFound();
+    }
+
+    return Results.Ok(eventItem);
+})
+.WithName("GetEventById");
+
 app.MapPost("/api/events", async (
     CreateEventRequest request,
     EventFlowDbContext db) =>
