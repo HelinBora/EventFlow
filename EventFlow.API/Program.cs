@@ -135,4 +135,22 @@ app.MapPost("/api/events", async (
 })
 .WithName("CreateEvent");
 
+app.MapDelete("/api/events/{id:int}", async (
+    int id,
+    EventFlowDbContext db) =>
+{
+    var eventItem = await db.Events.FindAsync(id);
+
+    if (eventItem is null)
+    {
+        return Results.NotFound();
+    }
+
+    db.Events.Remove(eventItem);
+    await db.SaveChangesAsync();
+
+    return Results.NoContent();
+})
+.WithName("DeleteEvent");
+
 app.Run();
