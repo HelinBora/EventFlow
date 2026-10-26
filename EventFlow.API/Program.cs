@@ -63,6 +63,44 @@ app.MapGet("/api/events/{id:int}", async Task<IResult> (
 })
 .WithName("GetEventById");
 
+
+app.MapPut("/api/events/{id:int}", async (
+    int id,
+    CreateEventRequest request,
+    EventFlowDbContext db) =>
+{
+    var eventItem = await db.Events.FindAsync(id);
+
+    if (eventItem is null)
+    {
+        return Results.NotFound();
+    }
+
+    if (string.IsNullOrWhiteSpace(request.Name) ||
+        string.IsNullOrWhiteSpace(request.Venue))
+    {
+        return Results.BadRequest(
+            "Etkinlik adı ve mekânı boş olamaz.");
+    }
+
+    if (request.AvailableTickets < 0)
+    {
+        return Results.BadRequest(
+            "Bilet sayısı negatif olamaz.");
+    }
+
+    eventItem.Name = request.Name;
+    eventItem.Venue = request.Venue;
+    eventItem.StartsAt = request.StartsAt;
+    eventItem.AvailableTickets = request.AvailableTickets;
+
+    await db.SaveChangesAsync();
+
+    return Results.Ok(eventItem);
+})
+.WithName("UpdateEvent");
+
+
 app.MapPost("/api/events", async (
     CreateEventRequest request,
     EventFlowDbContext db) =>
