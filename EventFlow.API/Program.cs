@@ -45,8 +45,26 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.MapGet("/api/events", async (EventFlowDbContext db) =>
-    await db.Events.ToListAsync())
-    .WithName("GetEvents");
+{
+    var now = DateTimeOffset.UtcNow;
+
+    return await db.Events
+        .Where(e => e.StartsAt > now)
+        .OrderBy(e => e.StartsAt)
+        .ToListAsync();
+})
+.WithName("GetEvents");
+
+app.MapGet("/api/events/archive", async (EventFlowDbContext db) =>
+{
+    var now = DateTimeOffset.UtcNow;
+
+    return await db.Events
+        .Where(e => e.StartsAt <= now)
+        .OrderByDescending(e => e.StartsAt)
+        .ToListAsync();
+})
+.WithName("GetArchivedEvents");
 
 app.MapGet("/api/events/{id:int}", async Task<IResult> (
     int id,
@@ -71,6 +89,13 @@ app.MapPut("/api/events/{id:int}", async (
 {
     var eventItem = await db.Events.FindAsync(id);
 
+    if (string.IsNullOrWhiteSpace(request.Name) ||
+    string.IsNullOrWhiteSpace(request.Venue))
+   {
+        return Results.BadRequest(
+            "Etkinlik adı ve mekânı boş olamaz.");
+    }
+
     if (eventItem is null)
     {
         return Results.NotFound();
@@ -81,6 +106,12 @@ app.MapPut("/api/events/{id:int}", async (
     {
         return Results.BadRequest(
             "Etkinlik adı ve mekânı boş olamaz.");
+    }
+
+    if (request.StartsAt <= DateTimeOffset.UtcNow)
+    {
+        return Results.BadRequest(
+            "Etkinlik başlangıç tarihi gelecekte olmalıdır.");
     }
 
     if (request.AvailableTickets < 0)
@@ -111,6 +142,12 @@ app.MapPost("/api/events", async (
         return Results.BadRequest(
             "Etkinlik adı ve mekânı boş olamaz.");
     }
+
+    if (request.StartsAt <= DateTimeOffset.UtcNow)
+{
+    return Results.BadRequest(
+        "Etkinlik başlangıç tarihi gelecekte olmalıdır.");
+}
 
     if (request.AvailableTickets < 0)
     {
